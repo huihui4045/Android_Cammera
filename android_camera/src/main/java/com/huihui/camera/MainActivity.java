@@ -15,6 +15,10 @@ import android.widget.TextView;
 import com.huihui.camera.activity.CameraActivity;
 import com.huihui.camera.activity.CustomCameraActivity;
 
+/****
+ * 相机开发系列
+ * http://www.polarxiong.com/archives/Android%E7%9B%B8%E6%9C%BA%E5%BC%80%E5%8F%91%E7%B3%BB%E5%88%97.html
+ */
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{
 
     private ListView mListView;
