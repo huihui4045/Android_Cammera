@@ -13,6 +13,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.huihui.camera.activity.CameraActivity;
+import com.huihui.camera.activity.CustomCameraActivity;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{
 
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private   DemoInfo[] DEMOS = {
             new DemoInfo("使用系统照相机", "使用系统照相机", CameraActivity.class),
+            new DemoInfo("自定义照相机", "自定义照相机CameraAPI", CustomCameraActivity.class),
 
 
             //new DemoInfo("自定义View", "自定义View 使用demo", CustomActivity.class),
