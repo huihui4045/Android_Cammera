@@ -7,11 +7,9 @@
     tools:context="com.huihui.camera.activity.CustomCameraActivity">
 
     <FrameLayout
-
         android:id="@+id/surfaceViewLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context="com.huihui.camera.activity.CustomCameraActivity"/>
+        android:layout_height="match_parent" />
 
 
     <!--下方提供进度条，已经隐藏，需要可以打开。Used to display progress,hidden by default -->
@@ -33,7 +31,6 @@
 
         <Button
             android:id="@+id/openCamera"
-            android:onClick="openCamera"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="拍照" />
@@ -51,13 +48,11 @@
 
 
     <Button
-        android:onClick="switchCamera"
         android:id="@+id/switchCamera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:text="切换摄像头" />
-
 
 </RelativeLayout>

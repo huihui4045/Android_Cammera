@@ -5,6 +5,8 @@ import android.content.Context;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.os.Environment;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -23,7 +25,7 @@ import static android.hardware.Camera.Parameters.FOCUS_MODE_AUTO;
  * Email:molu_clown@163.com
  */
 
-public class CameraPreviewView extends SurfaceView implements SurfaceHolder.Callback, Camera.PictureCallback, Camera.ShutterCallback {
+public class CameraPreviewView extends SurfaceView implements SurfaceHolder.Callback, Camera.PictureCallback, Camera.ShutterCallback,GestureDetector.OnGestureListener {
 
 
     private Camera mCamera;
@@ -33,6 +35,15 @@ public class CameraPreviewView extends SurfaceView implements SurfaceHolder.Call
     private OnTakePictureCallBack callBack;
 
     private Context context;
+
+    private int mWidth;//视频录制分辨率宽度
+    private int mHeight;//视频录制分辨率高度
+    private boolean isOpenCamera;//是否一开始就打开摄像头
+    private int recordMaxTime;//最长拍摄时间
+    private int timeCount;//时间计数
+    private File recordFile = null;//视频文件
+
+    private GestureDetector mGestureDetector;
 
     /***
      * 默认是前置摄像头
@@ -47,6 +58,8 @@ public class CameraPreviewView extends SurfaceView implements SurfaceHolder.Call
 
         mHolder = getHolder();
         mHolder.addCallback(this);
+
+        mGestureDetector=new GestureDetector(context,this);
 
         //mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
@@ -281,5 +294,40 @@ public class CameraPreviewView extends SurfaceView implements SurfaceHolder.Call
     @Override
     public void onShutter() {
 
+    }
+
+    @Override
+    public boolean onDown(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent e) {
+
+    }
+
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        return false;
+    }
+
+    /***
+     * 长按事件
+     * @param e
+     */
+    @Override
+    public void onLongPress(MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        return false;
     }
 }

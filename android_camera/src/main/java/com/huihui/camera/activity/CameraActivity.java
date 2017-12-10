@@ -158,7 +158,7 @@ public class CameraActivity extends AppCompatActivity {
         AndPermission.with(this)
                 .requestCode(CODE_PERMISSION)
                 .callback(this)
-                .permission(Permission.STORAGE,Permission.CAMERA)
+                .permission(Permission.STORAGE,Permission.CAMERA,Permission.MICROPHONE)
                 .rationale(new RationaleListener() {
                     @Override
                     public void showRequestPermissionRationale(int requestCode, Rationale rationale) {
