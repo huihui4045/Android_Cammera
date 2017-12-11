@@ -6,5 +6,5 @@ package com.huihui.camera.listener;
  */
 
 public interface OnRecordFinishListener {
-    void onRecordFinish();
+    void onRecordFinish(String video_path);
 }

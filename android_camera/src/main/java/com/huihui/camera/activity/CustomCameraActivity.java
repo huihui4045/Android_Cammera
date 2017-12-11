@@ -11,6 +11,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ProgressBar;
 
 import com.huihui.camera.R;
 import com.huihui.camera.listener.OnRecordFinishListener;
@@ -23,6 +24,7 @@ public class CustomCameraActivity extends AppCompatActivity implements OnTakePic
     private FrameLayout mSurfaceLayout;
     private CameraView mCameraPreviewView;
     private Button mStartRecord;
+    private ProgressBar mProgress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +38,8 @@ public class CustomCameraActivity extends AppCompatActivity implements OnTakePic
         setContentView(R.layout.activity_custom_camera);
 
         mSurfaceLayout = ((FrameLayout) findViewById(R.id.surfaceViewLayout));
+
+        mProgress = ((ProgressBar) findViewById(R.id.progress_bar));
 
         mCameraPreviewView = new CameraView(this);
 
@@ -62,7 +66,7 @@ public class CustomCameraActivity extends AppCompatActivity implements OnTakePic
      * 拍照
      * @param view
      */
-    public void openCamera(View view){
+    public void openCamera(View view) {
         mCameraPreviewView.takePicture();
     }
 
@@ -70,7 +74,7 @@ public class CustomCameraActivity extends AppCompatActivity implements OnTakePic
      * 切换摄像头
      * @param view
      */
-    public void switchCamera(View view){
+    public void switchCamera(View view) {
 
         mCameraPreviewView.switchCamera();
     }
@@ -79,6 +83,7 @@ public class CustomCameraActivity extends AppCompatActivity implements OnTakePic
     protected void onResume() {
         super.onResume();
 
+        mProgress.setProgress(0);
         mCameraPreviewView.onResume();
     }
 
@@ -96,7 +101,7 @@ public class CustomCameraActivity extends AppCompatActivity implements OnTakePic
 
         mSurfaceLayout.removeAllViews();
 
-        mCameraPreviewView=null;
+        mCameraPreviewView = null;
     }
 
 
@@ -118,7 +123,7 @@ public class CustomCameraActivity extends AppCompatActivity implements OnTakePic
 
     @Override
     public boolean onLongClick(View v) {
-        isLongClick=true;
+        isLongClick = true;
         /***
          * 开始录制
          */
@@ -126,11 +131,11 @@ public class CustomCameraActivity extends AppCompatActivity implements OnTakePic
         return true;
     }
 
-    private boolean isLongClick=false;
+    private boolean isLongClick = false;
 
     @Override
     public void onClick(View v) {
-        isLongClick=false;
+        isLongClick = false;
 
         mCameraPreviewView.takePicture();
     }
@@ -138,24 +143,42 @@ public class CustomCameraActivity extends AppCompatActivity implements OnTakePic
     @Override
     public boolean onTouch(View v, MotionEvent event) {
 
-        if (event.getAction()==MotionEvent.ACTION_UP&& isLongClick){
+        if (event.getAction() == MotionEvent.ACTION_UP && isLongClick) {
 
-                mCameraPreviewView.stopRecord();
+            mCameraPreviewView.stopRecord();
+
+
         }
 
         return false;
     }
 
-    private String TAG=this.getClass().getSimpleName();
-    @Override
-    public void onProgressChanged(int maxTime, int currentTime) {
+    private String TAG = this.getClass().getSimpleName();
 
-        Log.e(TAG,"onProgressChanged:"+currentTime*100/maxTime+"线程："+Thread.currentThread().getName());
+    @Override
+    public void onProgressChanged(final int maxTime, final int currentTime) {
+
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                mProgress.setProgress(currentTime * 100 / maxTime);
+            }
+        });
     }
 
     @Override
-    public void onRecordFinish() {
+    public void onRecordFinish(String videoPath) {
 
-        Log.e(TAG,"onRecordFinish:"+Thread.currentThread().getName());
+        isLongClick = false;
+
+        Log.e(TAG, "onRecordFinish:" + Thread.currentThread().getName());
+
+        Intent intent = new Intent(this, MediaVideoActivity.class);
+
+        intent.putExtra("data", videoPath);
+
+        startActivity(intent);
     }
 }

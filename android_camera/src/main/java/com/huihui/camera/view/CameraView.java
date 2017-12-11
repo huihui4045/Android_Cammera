@@ -31,7 +31,7 @@ import static android.hardware.Camera.Parameters.FOCUS_MODE_AUTO;
  */
 
 public class CameraView extends SurfaceView implements SurfaceHolder.Callback, Camera.PictureCallback,
-        Camera.ShutterCallback, MediaRecorder.OnErrorListener {
+        Camera.ShutterCallback, MediaRecorder.OnErrorListener, Camera.PreviewCallback {
 
 
 
@@ -84,7 +84,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
         /***
          * 默认60秒
          */
-        mRecordMaxTime=60;
+        mRecordMaxTime=30;
 
 
 
@@ -110,6 +110,8 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
 
             mCamera = CameraUtils.getCamera(CAMERA_FACING_TYPE);
         }
+
+        mCamera.setPreviewCallback(this);
 
         if (mRecorder==null){
 
@@ -161,13 +163,20 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
 
             showView();
         }
+
+
         mRecorder.setCamera(mCamera);
+        /****
+         * 屏幕录制之前 必须调用unlock()
+         */
+        mCamera.unlock();
 
 
         mRecorder.setOnErrorListener(this);
 
         CamcorderProfile mProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
 
+       // mRecorder.setProfile(mProfile);
 
         /***
          * 设置视频源
@@ -177,19 +186,65 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
         /****
          * 设置音频源
          */
-        mRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         /****
          *  视频输出格式 也可设为3gp等其他格式
          */
-        mRecorder.setOutputFormat(mProfile.fileFormat);
+        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+
+
+
+
         /***
          * 设置音频采集编码模式
          */
-        mRecorder.setAudioEncoder(mProfile.audioCodec);
+        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         /***
          * 设置视频采集编码模式
          */
-        mRecorder.setVideoEncoder(mProfile.videoCodec);
+        mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+
+        //mRecorder.setVideoSize(mVideoWidth, mVideoHeight);
+
+        Log.e(TAG,"mVideoWidth:"+mVideoWidth);
+
+        Log.e(TAG,"mVideoHeight:"+mVideoHeight);
+        /****
+         * 设置分辨率
+         */
+        mRecorder.setVideoSize(mVideoHeight, mVideoWidth);
+
+        /****
+         *  这是设置视频录制的帧率，即1秒钟16帧
+         */
+        mRecorder.setVideoFrameRate(100);
+
+
+        mRecorder.setAudioSamplingRate(30);
+
+        /***
+         * 设置所录制视频的编码位率。  这个属性很重要，这个也直接影响到视频录制的大小，这个设置的越大，视频越清晰，我做了简单的比较
+         */
+       mRecorder.setVideoEncodingBitRate(3 * 1024 * 1024);
+
+
+
+        //mRecorder.setOnInfoListener();
+
+
+        if (CAMERA_FACING_TYPE ==Camera.CameraInfo.CAMERA_FACING_FRONT){
+
+            mRecorder.setOrientationHint(270);
+        }else {
+
+            mRecorder.setOrientationHint(90);
+        }
+
+
+
+
+
+        mRecorder.setPreviewDisplay(mHolder.getSurface());
 
         /****
          * 视频保存的路径
@@ -197,19 +252,6 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
         mRecorder.setOutputFile(recordFile.getAbsolutePath());
 
 
-
-        mRecorder.setVideoSize(mVideoWidth,mVideoHeight);
-
-        mRecorder.setVideoFrameRate(mProfile.videoFrameRate);
-        mRecorder.setVideoEncodingBitRate(mProfile.videoBitRate);
-        mRecorder.setAudioEncodingBitRate(mProfile.audioBitRate);
-        mRecorder.setAudioChannels(mProfile.audioChannels);
-        mRecorder.setAudioSamplingRate(mProfile.audioSampleRate);
-
-
-
-
-        mRecorder.setPreviewDisplay(mHolder.getSurface());
 
         mRecorder.prepare();
 
@@ -240,7 +282,10 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
      * 停止录制
      */
     public void stopRecord() {
+
+        Log.e(TAG,"停止录制");
         //progressBar.setProgress(0);
+
         if (mTimer != null)
             mTimer.cancel();
         if (mRecorder != null) {
@@ -252,9 +297,18 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
                 e.printStackTrace();
             }
         }
+
+        if (mOnRecordFinishListener!=null&& isStartRecord){
+
+            mOnRecordFinishListener.onRecordFinish(recordFile.getAbsolutePath());
+        }
+
+        isStartRecord=false;
     }
 
 
+
+    private boolean isStartRecord=false;
 
     /***
      * 开始录制视频
@@ -266,6 +320,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
         try {
             initRecord();
             mTimeCount=0;
+            isStartRecord=true;
 
             mTimer=new Timer();
 
@@ -275,6 +330,8 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
 
                    mTimeCount++;
 
+                   Log.e(TAG,"定时器："+mTimeCount);
+
                    if (mOnRecordProgressListener!=null){
 
                        mOnRecordProgressListener.onProgressChanged(mRecordMaxTime,mTimeCount);
@@ -282,17 +339,15 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
 
                    if (mTimeCount==mRecordMaxTime){
 
+
                        stopRecord();
 
-                       if (mOnRecordFinishListener!=null){
-
-                           mOnRecordFinishListener.onRecordFinish();
-                       }
                    }
 
 
                 }
-            }, 1000);
+            }, 1000,1000);
+
 
 
         } catch (IOException e) {
@@ -305,6 +360,20 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
 
 
     }
+
+    /****
+     * 获取视频文件
+     * @return
+     */
+   public String getRecordFilePath(){
+
+        if (recordFile.exists()){
+
+            return  recordFile.getAbsolutePath();
+        }
+
+        return null;
+   }
 
     /**
      * 创建视频文件
@@ -442,6 +511,8 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
              */
             parameters.setPreviewSize(getWidth(), getHeight());
 
+
+
             /***
              * 设置对焦方式，这里设置自动对焦
              * auto  //自动
@@ -464,6 +535,8 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
                     }
                 }
             });
+
+
 
         }
     }
@@ -585,4 +658,15 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
         }
         return optimalSize;
     }
+
+    @Override
+    public void onPreviewFrame(byte[] data, Camera camera) {
+
+
+        Log.e(TAG,"onPreviewFrame");
+
+
+    }
+
+
 }
