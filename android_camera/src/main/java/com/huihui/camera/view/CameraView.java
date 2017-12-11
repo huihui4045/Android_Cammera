@@ -659,13 +659,15 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
         return optimalSize;
     }
 
+    public byte[] yuv420sp = null;
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
 
 
-        Log.e(TAG,"onPreviewFrame");
-
-
+        final int len = data.length;
+        for(int i=0; i<len; ++i){
+            data[i] *= 5;
+        }
     }
 
 
